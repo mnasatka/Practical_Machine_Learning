@@ -1,0 +1,54 @@
+---
+title: "Final Project for Practical Machine Learning"
+author: "Michael Nasatka"
+date: "March 22, 2015"
+output: html_document
+---
+
+Per the project description:
+
+Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
+
+
+
+Data 
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har
+
+The training data for this project are available here: 
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here: 
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+
+```{r, echo=FALSE}
+
+library(randomForest)
+library(gbm)
+library(caret)
+
+setwd("~/GitHub/Practical_Machine_Learning")
+
+## reads in the training and testing data, making na.strings uniform
+pmlTesting <- read.csv("pml-testing.csv", row.names = 1)
+pmlTraining <- read.csv("pml-training.csv", row.names = 1)
+
+## removes covariates close to zero and variables with 90% missing values
+nearzero <- nearZeroVar(pmlTraining, saveMetrics = T)
+training <- pmlTraining[, !nearzero$nzv]
+mostlymissing <- sapply(colnames(training), function(x) if(sum(is.na(training[, x])) > 0.8*nrow(training)){return(T)}else{return(F)})
+training <- training[, !mostlymissing]
+
+set.seed(999)
+
+boostfit <- train(classe ~ ., method="gbm", data=training, verbose=F, tuneLength=1, trControl=trainControl(method="cv", number=5, p=0.75))
+boostfit
+randomforestfit <- train(classe ~ ., method="rf", data=training, importance=T, tuneLength=1, trControl = trainControl(method="cv", number=5))
+randomforestfit
+
+```
