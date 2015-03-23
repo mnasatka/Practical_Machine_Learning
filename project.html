@@ -70,7 +70,7 @@ img {
 
 <p>Per the project description:</p>
 <p>Background</p>
-<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).</p>
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement â a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).</p>
 <p>Data</p>
 <p>The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a></p>
 <p>The training data for this project are available here:</p>
@@ -118,6 +118,47 @@ crossValidation = cleantraining[-inTrain,]
 
 ## train model with random forest for highly accuracy.
 modfit &lt;- train(classe ~ ., method=&quot;rf&quot;, data=training, importance=T, tuneLength=1, trControl = trainControl(method=&quot;cv&quot;, number=5))
+summary(modfit)</code></pre>
+<pre><code>##                 Length Class      Mode     
+## call                5  -none-     call     
+## type                1  -none-     character
+## predicted       14718  factor     numeric  
+## err.rate         3000  -none-     numeric  
+## confusion          30  -none-     numeric  
+## votes           73590  matrix     numeric  
+## oob.times       14718  -none-     numeric  
+## classes             5  -none-     character
+## importance        553  -none-     numeric  
+## importanceSD      474  -none-     numeric  
+## localImportance     0  -none-     NULL     
+## proximity           0  -none-     NULL     
+## ntree               1  -none-     numeric  
+## mtry                1  -none-     numeric  
+## forest             14  -none-     list     
+## y               14718  factor     numeric  
+## test                0  -none-     NULL     
+## inbag               0  -none-     NULL     
+## xNames             79  -none-     character
+## problemType         1  -none-     character
+## tuneValue           1  data.frame list     
+## obsLevels           5  -none-     character</code></pre>
+<pre class="r"><code>modfit$finalModel</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(x = x, y = y, mtry = param$mtry, importance = ..1) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 8
+## 
+##         OOB estimate of  error rate: 0.15%
+## Confusion matrix:
+##      A    B    C    D    E  class.error
+## A 4185    0    0    0    0 0.0000000000
+## B    4 2844    0    0    0 0.0014044944
+## C    0    5 2558    4    0 0.0035060382
+## D    0    0    5 2405    2 0.0029021559
+## E    0    0    0    2 2704 0.0007390983</code></pre>
+<pre class="r"><code>## The random forest model has a very low (&lt;1%) out of sample estimate of error rate shown above
 
 ## compute accuracy of training and cross validation set
 trainingPred &lt;- predict(modfit, training)

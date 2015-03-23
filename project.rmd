@@ -55,6 +55,9 @@ crossValidation = cleantraining[-inTrain,]
 
 ## train model with random forest for highly accuracy.
 modfit <- train(classe ~ ., method="rf", data=training, importance=T, tuneLength=1, trControl = trainControl(method="cv", number=5))
+summary(modfit)
+modfit$finalModel
+## The random forest model has a very low (<1%) out of sample estimate of error rate shown above
 
 ## compute accuracy of training and cross validation set
 trainingPred <- predict(modfit, training)
