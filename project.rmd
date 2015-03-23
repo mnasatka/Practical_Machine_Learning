@@ -26,29 +26,54 @@ The test data are available here:
 https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
 
-```{r, echo=FALSE}
-
+```{r}
 library(randomForest)
 library(gbm)
 library(caret)
 
-setwd("~/GitHub/Practical_Machine_Learning")
-
-## reads in the training and testing data, making na.strings uniform
+## reads in the training and testing data, sets working directory
 pmlTesting <- read.csv("pml-testing.csv", row.names = 1)
 pmlTraining <- read.csv("pml-training.csv", row.names = 1)
+setwd("~/GitHub/Practical_Machine_Learning")
 
 ## removes covariates close to zero and variables with 90% missing values
-nearzero <- nearZeroVar(pmlTraining, saveMetrics = T)
-training <- pmlTraining[, !nearzero$nzv]
-mostlymissing <- sapply(colnames(training), function(x) if(sum(is.na(training[, x])) > 0.8*nrow(training)){return(T)}else{return(F)})
-training <- training[, !mostlymissing]
+nearzerotrain <- nearZeroVar(pmlTraining, saveMetrics = T)
+cleantraining <- pmlTraining[, !nearzerotrain$nzv]
+mostlymissingtrain <- sapply(colnames(cleantraining), function(x) if(sum(is.na(cleantraining[, x])) > 0.8*nrow(cleantraining)){return(T)}else{return(F)})
+cleantraining <- cleantraining[, !mostlymissingtrain]
 
+nearzerotest <- nearZeroVar(pmlTesting, saveMetrics = T)
+cleantesting <- pmlTesting[, !nearzerotest$nzv]
+mostlymissingtest <- sapply(colnames(cleantesting), function(x) if(sum(is.na(cleantesting[, x])) > 0.8*nrow(cleantesting)){return(T)}else{return(F)})
+cleantesting <- cleantesting[, !mostlymissingtest]
+
+## partitions cleaned training set into a training and cross validation set
 set.seed(999)
+inTrain = createDataPartition(cleantraining$classe, p = 3/4, list=FALSE)
+training = cleantraining[inTrain,]
+crossValidation = cleantraining[-inTrain,]
 
-boostfit <- train(classe ~ ., method="gbm", data=training, verbose=F, tuneLength=1, trControl=trainControl(method="cv", number=5, p=0.75))
-boostfit
-randomforestfit <- train(classe ~ ., method="rf", data=training, importance=T, tuneLength=1, trControl = trainControl(method="cv", number=5))
-randomforestfit
+## train model with random forest for highly accuracy.
+modfit <- train(classe ~ ., method="rf", data=training, importance=T, tuneLength=1, trControl = trainControl(method="cv", number=5))
+
+## compute accuracy of training and cross validation set
+trainingPred <- predict(modfit, training)
+confusionMatrix(trainingPred, training$classe)
+
+cvPred <- predict(modfit, crossValidation)
+confusionMatrix(cvPred, crossValidation$classe)
+
+## predict on the real testing set
+pred <- predict(modfit,cleantesting)
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(as.character(pred))
 
 ```
